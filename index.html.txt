@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IdeaBoost — Générateur TikTok</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f0e8;
+  --bg2: #ede8df;
+  --card: #ffffff;
+  --border: rgba(0,0,0,0.08);
+  --text: #1a1a1a;
+  --text2: #666;
+  --text3: #999;
+  --accent: #ff4d00;
+  --accent2: #ff8a00;
+  --tag-bg: #1a1a1a;
+  --tag-text: #f5f0e8;
+  --input-bg: #ffffff;
+  --shadow: 0 2px 20px rgba(0,0,0,0.08);
+  --shadow-hover: 0 8px 32px rgba(0,0,0,0.14);
+  --toggle-bg: #1a1a1a;
+  --toggle-icon: #f5f0e8;
+}
+.dark {
+  --bg: #0e0e0e;
+  --bg2: #161616;
+  --card: #1e1e1e;
+  --border: rgba(255,255,255,0.08);
+  --text: #f0ece4;
+  --text2: #aaa;
+  --text3: #555;
+  --accent: #ff6a2f;
+  --accent2: #ffaa44;
+  --tag-bg: #f0ece4;
+  --tag-text: #0e0e0e;
+  --input-bg: #2a2a2a;
+  --shadow: 0 2px 20px rgba(0,0,0,0.4);
+  --shadow-hover: 0 8px 32px rgba(0,0,0,0.6);
+  --toggle-bg: #f0ece4;
+  --toggle-icon: #0e0e0e;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.4s, color 0.4s;
+  min-height: 100vh;
+}
+.page { max-width: 720px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 3rem; }
+.logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem; letter-spacing: -0.02em; color: var(--text); }
+.logo span { color: var(--accent); }
+.toggle-btn {
+  width: 40px; height: 40px; border-radius: 50%; border: none;
+  background: var(--toggle-bg); color: var(--toggle-icon);
+  cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center;
+  transition: transform 0.3s, background 0.4s;
+}
+.toggle-btn:hover { transform: rotate(20deg) scale(1.1); }
+
+.hero { margin-bottom: 2.5rem; }
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--tag-bg); color: var(--tag-text);
+  font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 5px 12px; border-radius: 20px; margin-bottom: 1rem;
+}
+.live-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: blink 1.4s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+.hero h1 {
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: clamp(2rem, 6vw, 3.2rem);
+  line-height: 1.05; letter-spacing: -0.03em;
+  color: var(--text); margin-bottom: 0.75rem;
+}
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero p { font-size: 15px; color: var(--text2); line-height: 1.6; max-width: 420px; }
+
+.search-section { margin-bottom: 2rem; }
+.search-box {
+  display: flex; gap: 10px; align-items: center;
+  background: var(--input-bg); border: 1.5px solid var(--border);
+  border-radius: 16px; padding: 8px 8px 8px 18px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-shadow: var(--shadow);
+}
+.search-box:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,77,0,0.1); }
+.search-box input {
+  flex: 1; background: transparent; border: none; outline: none;
+  font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--text);
+}
+.search-box input::placeholder { color: var(--text3); }
+.search-btn {
+  background: var(--accent); color: #fff; border: none;
+  border-radius: 10px; padding: 11px 22px;
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px;
+  letter-spacing: 0.04em; cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+.search-btn:hover { background: var(--accent2); transform: translateY(-1px); }
+.search-btn:active { transform: scale(0.97); }
+
+.correction {
+  display: none; align-items: center; gap: 10px;
+  background: rgba(255,170,0,0.08); border: 1px solid rgba(255,170,0,0.2);
+  border-radius: 12px; padding: 10px 14px; margin-top: 10px; font-size: 13px;
+}
+.correction.show { display: flex; }
+.correction-label { color: var(--text2); flex: 1; }
+.correction-label strong { color: var(--accent2); }
+.fix-btn {
+  background: rgba(255,170,0,0.15); border: 1px solid rgba(255,170,0,0.3);
+  color: var(--accent2); border-radius: 8px; padding: 4px 12px;
+  font-size: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif;
+}
+.fix-btn:hover { background: rgba(255,170,0,0.25); }
+
+.tags-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 2rem; }
+.tag-label { font-size: 12px; color: var(--text3); align-self: center; margin-right: 4px; }
+.tag {
+  background: var(--bg2); border: 1px solid var(--border);
+  color: var(--text2); font-size: 12px; padding: 5px 14px;
+  border-radius: 20px; cursor: pointer; transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.tag:hover { background: var(--accent); color: #fff; border-color: var(--accent); transform: translateY(-1px); }
+
+.cat-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.cat-tab {
+  padding: 7px 16px; border-radius: 20px; font-size: 13px; cursor: pointer;
+  border: 1px solid var(--border); background: transparent; color: var(--text2);
+  font-family: 'DM Sans', sans-serif; transition: all 0.2s;
+}
+.cat-tab.active, .cat-tab:hover { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+.ideas-grid { display: flex; flex-direction: column; gap: 10px; }
+.idea-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 16px 18px;
+  display: flex; align-items: flex-start; gap: 14px;
+  box-shadow: var(--shadow); cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  opacity: 0; transform: translateY(12px);
+  animation: fadeUp 0.4s ease forwards;
+}
+.idea-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); border-color: var(--accent); }
+@keyframes fadeUp { to { opacity:1; transform:translateY(0); } }
+.idea-num {
+  min-width: 32px; height: 32px; border-radius: 10px;
+  background: var(--bg2); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px;
+  color: var(--text2); flex-shrink: 0;
+}
+.idea-body { flex: 1; }
+.idea-format {
+  font-size: 10px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 4px;
+}
+.idea-text { font-size: 14px; color: var(--text); line-height: 1.5; }
+.idea-meta { font-size: 11px; color: var(--text3); margin-top: 5px; }
+.copy-btn {
+  background: none; border: none; color: var(--text3); cursor: pointer;
+  font-size: 15px; padding: 4px; border-radius: 6px; flex-shrink: 0;
+  transition: color 0.2s, background 0.2s;
+}
+.copy-btn:hover { color: var(--accent); background: rgba(255,77,0,0.08); }
+
+.placeholder { text-align: center; padding: 3rem 1rem; }
+.placeholder-icon { font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.4; }
+.placeholder-text { font-size: 14px; color: var(--text3); line-height: 1.6; }
+
+.loader { display: none; flex-direction: column; align-items: center; gap: 12px; padding: 2.5rem; }
+.loader.show { display: flex; }
+.bars { display: flex; gap: 4px; align-items: flex-end; height: 28px; }
+.bar { width: 4px; border-radius: 2px; background: var(--accent); animation: barUp 1s ease infinite; }
+.bar:nth-child(1){height:12px;animation-delay:0s} .bar:nth-child(2){height:20px;animation-delay:0.15s} .bar:nth-child(3){height:28px;animation-delay:0.3s} .bar:nth-child(4){height:20px;animation-delay:0.45s} .bar:nth-child(5){height:12px;animation-delay:0.6s}
+@keyframes barUp { 0%,100%{transform:scaleY(0.4);opacity:0.4} 50%{transform:scaleY(1);opacity:1} }
+.loader-text { font-size: 13px; color: var(--text2); }
+
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--text); color: var(--bg);
+  padding: 10px 20px; border-radius: 30px; font-size: 13px;
+  transition: transform 0.3s; z-index: 999; pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.footer-text { font-size: 12px; color: var(--text3); }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="logo">Idea<span>Boost</span></div>
+    <button class="toggle-btn" onclick="toggleTheme()" id="toggleBtn">🌙</button>
+  </header>
+
+  <div class="hero">
+    <div class="hero-tag"><span class="live-dot"></span> Générateur TikTok</div>
+    <h1>Des idées qui font<br><em>exploser</em> ton compte</h1>
+    <p>Entre ton thème, choisis un format et génère des idées virales personnalisées en 1 clic.</p>
+  </div>
+
+  <div class="search-section">
+    <div class="search-box">
+      <input id="themeInput" placeholder="fitness, cuisine, crypto, voyage..." onkeydown="if(event.key==='Enter')generate()">
+      <button class="search-btn" onclick="generate()">Générer →</button>
+    </div>
+    <div class="correction" id="correctionBox">
+      <span class="correction-label" id="correctionLabel"></span>
+      <button class="fix-btn" onclick="applyFix()">Appliquer</button>
+    </div>
+  </div>
+
+  <div class="tags-row">
+    <span class="tag-label">Tendances :</span>
+    <span class="tag" onclick="useTag('fitness')">💪 Fitness</span>
+    <span class="tag" onclick="useTag('cuisine')">🍳 Cuisine</span>
+    <span class="tag" onclick="useTag('business')">💼 Business</span>
+    <span class="tag" onclick="useTag('gaming')">🎮 Gaming</span>
+    <span class="tag" onclick="useTag('voyage')">✈️ Voyage</span>
+    <span class="tag" onclick="useTag('finance')">💰 Finance</span>
+    <span class="tag" onclick="useTag('mode')">👗 Mode</span>
+    <span class="tag" onclick="useTag('tech')">📱 Tech</span>
+  </div>
+
+  <div class="cat-tabs">
+    <button class="cat-tab active" onclick="selectCat(this,'all')">Tous les formats</button>
+    <button class="cat-tab" onclick="selectCat(this,'story')">Storytelling</button>
+    <button class="cat-tab" onclick="selectCat(this,'tuto')">Tutoriel</button>
+    <button class="cat-tab" onclick="selectCat(this,'trend')">Tendance</button>
+    <button class="cat-tab" onclick="selectCat(this,'challenge')">Challenge</button>
+  </div>
+
+  <div class="loader" id="loader">
+    <div class="bars"><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+    <div class="loader-text">Génération en cours...</div>
+  </div>
+
+  <div class="ideas-grid" id="ideasGrid">
+    <div class="placeholder">
+      <div class="placeholder-icon">✦</div>
+      <div class="placeholder-text">Entre un thème ci-dessus pour générer<br>tes idées TikTok virales</div>
+    </div>
+  </div>
+
+  <footer>
+    <span class="footer-text">IdeaBoost — Générateur TikTok</span>
+    <span class="footer-text" id="generatedCount">0 idées générées</span>
+  </footer>
+</div>
+
+<div class="toast" id="toast">✓ Copié !</div>
+
+<script>
+let dark = false;
+let currentCat = 'all';
+let fixedWord = '';
+let totalGenerated = 0;
+
+function toggleTheme() {
+  dark = !dark;
+  document.body.classList.toggle('dark', dark);
+  document.getElementById('toggleBtn').textContent = dark ? '☀️' : '🌙';
+}
+
+function useTag(tag) {
+  document.getElementById('themeInput').value = tag;
+  generate();
+}
+
+function selectCat(el, cat) {
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentCat = cat;
+  const theme = document.getElementById('themeInput').value.trim();
+  if (theme) generate();
+}
+
+const templates = {
+  story: [
+    { t: "J'ai tout perdu en {theme} — voici comment j'ai rebondi", m: "Storytelling personnel · fort taux d'engagement" },
+    { t: "Ce que {theme} m'a appris sur la vie en 30 jours", m: "Récit inspirant · idéal pour les Saves" },
+    { t: "Ma plus grosse erreur en {theme} (et comment l'éviter)", m: "Vulnérabilité = viralité" },
+    { t: "De 0 à {result} en {theme} : mon histoire complète", m: "Format Before/After très partagé" },
+    { t: "Personne ne m'a dit ça quand j'ai commencé le {theme}", m: "Frustration → solution = combo gagnant" },
+    { t: "Ce jour où {theme} a changé ma vie pour toujours", m: "Émotion forte = partages massifs" },
+  ],
+  tuto: [
+    { t: "3 astuces {theme} que les pros cachent aux débutants", m: "Tuto · Saves garantis" },
+    { t: "POV : tu maîtrises {theme} en 60 secondes", m: "Format POV très partagé" },
+    { t: "Le seul guide {theme} dont tu as besoin en 2025", m: "Tuto complet · fort taux de partage" },
+    { t: "Comment j'ai appris {theme} sans dépenser 1€", m: "Valeur perçue maximale" },
+    { t: "5 étapes pour débuter en {theme} même si t'es nul", m: "Tuto accessible · large audience" },
+    { t: "La méthode {theme} que personne n'enseigne à l'école", m: "Exclusivité perçue = clics assurés" },
+    { t: "Tout ce que tu dois savoir sur {theme} en moins de 1 min", m: "Format rapide = replay loop" },
+  ],
+  trend: [
+    { t: "Le côté sombre de {theme} que personne ne montre", m: "Controverse douce = millions de vues" },
+    { t: "{theme} : j'ai testé tout ce qu'on voit sur TikTok", m: "Format test/débunk très viral" },
+    { t: "Pourquoi tout le monde se trompe sur {theme}", m: "Contre-opinion = débat = viralité" },
+    { t: "La vérité sur {theme} en 2025 (chiffres à l'appui)", m: "Data + opinion = crédibilité" },
+    { t: "Ce que les influenceurs {theme} ne te disent pas", m: "Exposé = commentaires en feu" },
+    { t: "Hot take : {theme} c'est surcôté. Voici pourquoi", m: "Opinion forte = partages et débats" },
+    { t: "{theme} vs la réalité — ce qu'on voit vs ce que c'est vraiment", m: "Démystification = viralité naturelle" },
+  ],
+  challenge: [
+    { t: "Je teste {theme} pendant 7 jours — résultats honnêtes", m: "Challenge · parfait pour une série" },
+    { t: "7 jours de {theme} intense : avant / après honnête", m: "Transformation = engagement maximal" },
+    { t: "J'ai dit oui à tout ce qui concerne {theme} pendant 24h", m: "Format challenge addictif" },
+    { t: "Challenge {theme} avec ma famille — ils ont kiffé ?", m: "Famille = audience élargie" },
+    { t: "Je commence {theme} de zéro. Suivez mon évolution", m: "Série = abonnés fidèles" },
+    { t: "30 jours de {theme} : est-ce que ça change vraiment ?", m: "Long terme = communauté engagée" },
+  ],
+};
+
+const corrections = {
+  "fitnes":"fitness","fitnesse":"fitness","busines":"business","bussiness":"business",
+  "gamming":"gaming","gamin":"gaming","cusin":"cuisine","cuisin":"cuisine",
+  "voyaje":"voyage","vyage":"voyage","fiance":"finance","finnance":"finance",
+  "mod":"mode","tecnologie":"technologie","technolgie":"technologie","tec":"tech",
+  "cryptoo":"crypto","krypto":"crypto","markting":"marketing","marketin":"marketing",
+  "devloppement":"développement","developpement":"développement","sante":"santé",
+  "musiic":"musique","musiq":"musique","phot":"photo","photographie":"photographie"
+};
+
+function checkSpelling(word) {
+  return corrections[word.toLowerCase().trim()] || null;
+}
+
+function randomResult(theme) {
+  const results = {
+    fitness:"perdre 8kg", business:"10k€/mois", gaming:"1000 wins",
+    cuisine:"100 recettes", crypto:"x10 son investissement", voyage:"30 pays visités",
+    finance:"son premier 1000€", mode:"son style parfait", tech:"sa première app"
+  };
+  return results[theme.toLowerCase()] || "ses objectifs";
+}
+
+function generate() {
+  const raw = document.getElementById('themeInput').value.trim();
+  if (!raw) return;
+
+  const fix = checkSpelling(raw);
+  const corrBox = document.getElementById('correctionBox');
+  if (fix) {
+    fixedWord = fix;
+    document.getElementById('correctionLabel').innerHTML = `✏️ Faute détectée : <strong>"${raw}"</strong> → <strong>"${fix}"</strong>`;
+    corrBox.classList.add('show');
+  } else {
+    fixedWord = '';
+    corrBox.classList.remove('show');
+  }
+
+  const theme = fix || raw;
+  const grid = document.getElementById('ideasGrid');
+  const loader = document.getElementById('loader');
+
+  grid.innerHTML = '';
+  loader.classList.add('show');
+
+  setTimeout(() => {
+    loader.classList.remove('show');
+
+    let pool = [];
+    if (currentCat === 'all') {
+      Object.values(templates).forEach(arr => pool.push(...arr));
+    } else {
+      pool = templates[currentCat] || [];
+    }
+
+    pool = pool.sort(() => Math.random() - 0.5).slice(0, 8);
+
+    const formatNames = { story:'Storytelling', tuto:'Tutoriel', trend:'Tendance', challenge:'Challenge' };
+
+    grid.innerHTML = pool.map((item, i) => {
+      const text = item.t
+        .replace(/{theme}/g, theme)
+        .replace(/{result}/g, randomResult(theme));
+      const formatKey = Object.entries(templates).find(([k,v]) => v.includes(item))?.[0] || 'story';
+      const delay = (i * 0.06).toFixed(2);
+      const safeText = text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+      return `
+        <div class="idea-card" style="animation-delay:${delay}s">
+          <div class="idea-num">${i+1}</div>
+          <div class="idea-body">
+            <div class="idea-format">${formatNames[formatKey] || 'Idée'}</div>
+            <div class="idea-text">${text}</div>
+            <div class="idea-meta">${item.m}</div>
+          </div>
+          <button class="copy-btn" onclick="copyIdea('${safeText}')" title="Copier">⎘</button>
+        </div>`;
+    }).join('');
+
+    totalGenerated += pool.length;
+    document.getElementById('generatedCount').textContent = `${totalGenerated} idées générées`;
+  }, 600);
+}
+
+function applyFix() {
+  if (fixedWord) {
+    document.getElementById('themeInput').value = fixedWord;
+    document.getElementById('correctionBox').classList.remove('show');
+    generate();
+  }
+}
+
+function copyIdea(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  });
+}
+</script>
+</body>
+</html>
